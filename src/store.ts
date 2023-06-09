@@ -1,4 +1,4 @@
-import type { BaileysEventEmitter, SocketConfig } from '@adiwajshing/baileys';
+import type { BaileysEventEmitter, SocketConfig } from '@whiskeysockets/baileys';
 import type { PrismaClient } from '@prisma/client';
 import { setLogger, setPrisma } from './shared';
 import * as handlers from './handlers';

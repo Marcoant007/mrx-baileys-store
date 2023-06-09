@@ -1,4 +1,4 @@
-import type { BaileysEventMap } from '@adiwajshing/baileys';
+import type { BaileysEventMap } from '@whiskeysockets/baileys';
 import type Long from 'long';
 
 export type BaileysEventHandler<T extends keyof BaileysEventMap> = (
