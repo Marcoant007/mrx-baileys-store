@@ -1,6 +1,6 @@
 {
-  "name": "baileys-store",
-  "version": "2.0.0",
+  "name": "mrx-baileys-store",
+  "version": "2.0.1",
   "description": "Minimal Baileys data storage for your favorite DBMS built with Prisma",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
