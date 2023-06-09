@@ -6,9 +6,6 @@ import { useLogger, usePrisma } from './shared';
 
 const fixId = (id: string) => id.replace(/\//g, '__').replace(/:/g, '-');
 
-function convertToSignalDataTypeMap<T extends keyof SignalDataTypeMap>(value: any): SignalDataTypeMap[T] {
-  return value as SignalDataTypeMap[T];
-}
 
 export async function useSession(sessionId: string) {
   const model = usePrisma().session;
@@ -57,26 +54,26 @@ export async function useSession(sessionId: string) {
     }
   };
 
-  type GetSignalDataType<T extends keyof SignalDataTypeMap> = T extends keyof SignalDataTypeMap ? SignalDataTypeMap[T] : never;
   const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
 
   return {
     state: {
       creds,
       keys: {
-        get: async <T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{ [id: string]: GetSignalDataType<T> }> => {
-          const data: { [id: string]: GetSignalDataType<T> } = {} as any;
+        get: async <T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{ [id: string]: SignalDataTypeMap[T] }> => {
+          const data: { [id: string]: SignalDataTypeMap[T] } = {} as any;
           await Promise.all(
             ids.map(async (id) => {
               let value = await read(`${type}-${id}`);
               if (type === 'app-state-sync-key' && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
               }
-              data[id] = value as GetSignalDataType<T>;
+              data[id] = value as SignalDataTypeMap[T];
             })
           );
           return data;
         },
+        
         set: async (data: any) => {
           const tasks: Promise<void>[] = [];
 
