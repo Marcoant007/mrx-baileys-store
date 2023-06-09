@@ -6,6 +6,10 @@ import { useLogger, usePrisma } from './shared';
 
 const fixId = (id: string) => id.replace(/\//g, '__').replace(/:/g, '-');
 
+function convertToSignalDataTypeMap<T extends keyof SignalDataTypeMap>(value: any): SignalDataTypeMap[T] {
+  return value as SignalDataTypeMap[T];
+}
+
 export async function useSession(sessionId: string) {
   const model = usePrisma().session;
   const logger = useLogger();
@@ -60,14 +64,14 @@ export async function useSession(sessionId: string) {
       creds,
       keys: {
         get: async (type: keyof SignalDataTypeMap, ids: string[]) => {
-          const data: { [key: string]: SignalDataTypeMap[typeof type] } = {};
+          const data: { [id: string]: SignalDataTypeMap[typeof type] } = {};
           await Promise.all(
             ids.map(async (id) => {
               let value = await read(`${type}-${id}`);
               if (type === 'app-state-sync-key' && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
               }
-              data[id] = value;
+              data[id] = convertToSignalDataTypeMap<typeof type>(value);
             })
           );
           return data;
