@@ -1,4 +1,5 @@
-> 🚨 **NOTICE**: `@whiskeysockets/baileys` which is this project relied on, has been discontinued. Thus, this project will be archived and stopped receiving updates anymore. Thanks everyone who's been part of this❤️
+> 🚨 **NOTICE**: `@whiskeysockets/baileys` 
+If you use bailey store in this version it is already updated with the lib https://github.com/WhiskeySockets/Baileys . Hope that helps ❤
 
 ---
 
@@ -36,10 +37,8 @@ model Session {
 
 ```bash
 # Using npm
-npm i @ookamiiixd/baileys-store
+npm i mrx-baileys-store
 
-# Using yarn
-yarn add @ookamiiixd/baileys-store
 ```
 
 ## Setup
@@ -74,7 +73,3 @@ const store = new Store('unique-session-id-here', socket.ev);
 // That's it, you can now query from the prisma client without having to worry about handling the events
 const messages = prisma.message.findMany();
 ```
-
-## Contributing
-
-PRs, issues, suggestions, etc are welcome. Please kindly open a new issue to discuss it
