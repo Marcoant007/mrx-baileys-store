@@ -57,21 +57,22 @@ export async function useSession(sessionId: string) {
     }
   };
 
+  type GetSignalDataType<T extends keyof SignalDataTypeMap> = T extends keyof SignalDataTypeMap ? SignalDataTypeMap[T] : never;
   const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
 
   return {
     state: {
       creds,
       keys: {
-        get: async (type: keyof SignalDataTypeMap, ids: string[]) => {
-          const data: { [K in typeof ids[number]]: SignalDataTypeMap[typeof type] } = {} as any;
+        get: async <T extends keyof SignalDataTypeMap>(type: T, ids: string[]): Promise<{ [id: string]: GetSignalDataType<T> }> => {
+          const data: { [id: string]: GetSignalDataType<T> } = {} as any;
           await Promise.all(
             ids.map(async (id) => {
               let value = await read(`${type}-${id}`);
               if (type === 'app-state-sync-key' && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
               }
-              data[id] = value;
+              data[id] = value as GetSignalDataType<T>;
             })
           );
           return data;
