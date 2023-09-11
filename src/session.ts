@@ -54,7 +54,10 @@ export async function useSession(sessionId: string) {
     }
   };
   //  const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
-  const creds: AuthenticationCreds = (await model.findUnique({ where:{id: 'creds'}})) ? (await read('creds'))  : initAuthCreds();
+  const creds: AuthenticationCreds = (await model.findUnique({ where:{ sessionId_id: { id: 'creds', sessionId } }}))
+                                ? (await read('creds')) 
+                                : initAuthCreds();
+
 
     return {
     state: {
