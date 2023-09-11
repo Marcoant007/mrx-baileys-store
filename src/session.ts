@@ -53,7 +53,8 @@ export async function useSession(sessionId: string) {
       logger.error(e, 'An error occured during session delete');
     }
   };
-   const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
+  //  const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
+  const creds: AuthenticationCreds = (await model.findUnique({ where:{id: 'creds'}})) ? (await read('creds'))  : initAuthCreds();
 
     return {
     state: {
