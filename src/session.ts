@@ -5,7 +5,9 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { useLogger, usePrisma } from './shared';
 
 const fixId = (id: string) => id.replace(/\//g, '__').replace(/:/g, '-');
-
+export type SessionWhereUniqueInput = {
+  sessionId?: string
+}
 
 export async function useSession(sessionId: string) {
   const model = usePrisma().session;
@@ -17,9 +19,9 @@ export async function useSession(sessionId: string) {
       id = fixId(id);
       await model.upsert({
         select: { pkId: true },
-        create: { data, id, sessionId },
+        create: { data, id: fixId(id), sessionId },
         update: { data },
-        where: { sessionId_id: { id, sessionId } },
+        where: { sessionId_id: { id: fixId(id), sessionId } },
       });
     } catch (e) {
       logger.error(e, 'An error occured during session write');
@@ -45,18 +47,26 @@ export async function useSession(sessionId: string) {
 
   const del = async (id: string) => {
     try {
-      await model.delete({
-        select: { pkId: true },
+      const record = await model.findUnique({
         where: { sessionId_id: { id: fixId(id), sessionId } },
       });
+
+      if (record) {
+        await model.delete({
+          select: { pkId: true },
+          where: { sessionId_id: { id: fixId(id), sessionId } },
+        });
+      } else {
+        logger.info('Record does not exist');
+      }
     } catch (e) {
       logger.error(e, 'An error occured during session delete');
     }
   };
-  //  const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
-  const creds: AuthenticationCreds = (await model.findUnique({ where:{id: 'creds'}})) ? (await read('creds'))  : initAuthCreds();
 
-    return {
+  const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
+
+  return {
     state: {
       creds,
       keys: {
@@ -73,7 +83,7 @@ export async function useSession(sessionId: string) {
           );
           return data;
         },
-        
+
         set: async (data: any) => {
           const tasks: Promise<void>[] = [];
 
