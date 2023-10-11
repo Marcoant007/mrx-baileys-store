@@ -16,9 +16,9 @@ export async function useSession(sessionId: string) {
       id = fixId(id);
       await model.upsert({
         select: { pkId: true },
-        create: { data, id, sessionId },
+        create: { data, id: fixId(id), sessionId },
         update: { data },
-        where: { sessionId_id: { id, sessionId } },
+        where: { sessionId_id: { id: fixId(id), sessionId } },
       });
     } catch (e) {
       logger.error(e, 'An error occured during session write');
@@ -44,10 +44,18 @@ export async function useSession(sessionId: string) {
 
   const del = async (id: string) => {
     try {
-      await model.delete({
-        select: { pkId: true },
+      const record = await model.findUnique({
         where: { sessionId_id: { id: fixId(id), sessionId } },
       });
+  
+      if (record) {
+        await model.delete({
+          select: { pkId: true },
+          where: { sessionId_id: { id: fixId(id), sessionId } },
+        });
+      } else {
+        logger.info('Record does not exist');
+      }
     } catch (e) {
       logger.error(e, 'An error occured during session delete');
     }
