@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import type { AuthenticationCreds, SignalDataTypeMap } from '@whiskeysockets/baileys';
 import { proto } from '@whiskeysockets/baileys';
 import { BufferJSON, initAuthCreds } from '@whiskeysockets/baileys';
@@ -60,8 +61,8 @@ export async function useSession(sessionId: string) {
       logger.error(e, 'An error occured during session delete');
     }
   };
-   const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
-  // const creds: AuthenticationCreds = (await model.findUnique({ where:{id: 'creds'}})) ? (await read('creds'))  : initAuthCreds();
+  //  const creds: AuthenticationCreds = (await read('creds')) || initAuthCreds();
+  const creds: AuthenticationCreds = (await model.findUnique({ where: { sessionId_id: { id: 'creds', sessionId } } })) ? (await read('creds')) : initAuthCreds();
 
     return {
     state: {
@@ -75,7 +76,7 @@ export async function useSession(sessionId: string) {
               if (type === 'app-state-sync-key' && value) {
                 value = proto.Message.AppStateSyncKeyData.fromObject(value);
               }
-              data[id] = value as SignalDataTypeMap[T];
+              data[id] = value;
             })
           );
           return data;
@@ -88,7 +89,7 @@ export async function useSession(sessionId: string) {
             for (const id in data[category]) {
               const value = data[category][id];
               const sId = `${category}-${id}`;
-              tasks.push(value ? write(value, sId) : del(sId));
+              tasks.push(value ? write(value, sId).then(() => {}) : del(sId).then(() => {}));
             }
           }
           await Promise.all(tasks);
