@@ -1,8 +1,9 @@
 import type { BaileysEventEmitter } from '@whiskeysockets/baileys';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { useLogger, usePrisma } from '../shared';
 import type { BaileysEventHandler } from '../types';
 import { transformPrisma } from '../utils';
+import type { Prisma } from '@prisma/client';
 
 export default function chatHandler(sessionId: string, event: BaileysEventEmitter) {
   const prisma = usePrisma();
@@ -24,7 +25,7 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
           await tx.chat.createMany({
             data: chats
               .filter((c) => !existingIds.includes(c.id))
-              .map((c) => ({ ...transformPrisma(c), sessionId })),
+              .map((c) => ({ ...transformPrisma(c), sessionId } as Prisma.ChatCreateManyInput)),
           })
         ).count;
 
@@ -43,7 +44,7 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
           .map((data) =>
             prisma.chat.upsert({
               select: { pkId: true },
-              create: { ...data, sessionId },
+              create: { ...data, sessionId } as Prisma.ChatCreateInput,
               update: data,
               where: { sessionId_id: { id: data.id, sessionId } },
             })

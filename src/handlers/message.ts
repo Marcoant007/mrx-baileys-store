@@ -8,6 +8,7 @@ import { jidNormalizedUser, toNumber } from '@whiskeysockets/baileys';
 import { useLogger, usePrisma } from '../shared';
 import type { BaileysEventHandler } from '../types';
 import { transformPrisma } from '../utils';
+import type { Prisma } from '@prisma/client';
 
 const getKeyAuthor = (key: WAMessageKey | undefined | null) =>
   (key?.fromMe ? 'me' : key?.participant || key?.remoteJid) || '';
@@ -23,12 +24,15 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
         if (isLatest) await tx.message.deleteMany({ where: { sessionId } });
 
         await tx.message.createMany({
-          data: messages.map((message) => ({
-            ...transformPrisma(message),
-            remoteJid: message.key.remoteJid!,
-            id: message.key.id!,
-            sessionId,
-          })),
+          data: messages.map(
+            (message) =>
+              ({
+                ...transformPrisma(message),
+                remoteJid: message.key.remoteJid!,
+                id: message.key.id!,
+                sessionId,
+              } as Prisma.MessageCreateManyInput)
+          ),
         });
       });
       logger.info({ messages: messages.length }, 'Synced messages');
@@ -47,7 +51,12 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
             const data = transformPrisma(message);
             await prisma.message.upsert({
               select: { pkId: true },
-              create: { ...data, remoteJid: jid, id: message.key.id!, sessionId },
+              create: {
+                ...data,
+                remoteJid: jid,
+                id: message.key.id!,
+                sessionId,
+              } as Prisma.MessageCreateInput,
               update: { ...data },
               where: { sessionId_remoteJid_id: { remoteJid: jid, id: message.key.id!, sessionId } },
             });
@@ -99,7 +108,7 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
               id: data.key.id!,
               remoteJid: data.key.remoteJid!,
               sessionId,
-            },
+            } as Prisma.MessageCreateInput,
           });
         });
       } catch (e) {
